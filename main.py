@@ -2,9 +2,6 @@ import tkinter as tk
 from tkinter import messagebox
 import random
 
-# ==============================
-# 1. Quiz Data (this is your "database")
-# ==============================
 # Define the quiz data (simplified for elementary level)
 quiz_data = {
     "Physics": [
@@ -91,63 +88,60 @@ quiz_data = {
 }
 
 
-# ==============================
-# 2. Main App Class
-# ==============================
 class ScienceQuizApp:
-
-    # Initialize the program
-    def __init__(self, root):
+    def __init__(self, root):  # ✅ FIX 1
         self.root = root
-        self.root.title("Fun Elementary Science Quiz")
+        self.root.title("PySci Quiz")
         self.root.geometry("600x500")
         self.root.configure(bg="#E0F7FA")
 
+        self.category = None
         self.questions = []
         self.current_question_index = 0
         self.score = 0
         self.selected_option = tk.StringVar()
 
-        # --------------------------
-        # Category Selection Screen
-        # --------------------------
+        # Category frame
         self.category_frame = tk.Frame(root, bg="#E0F7FA")
-
-        tk.Label(
+        self.category_label = tk.Label(
             self.category_frame,
             text="Choose a fun topic!",
             font=("Comic Sans MS", 18, "bold"),
-            bg="#E0F7FA"
-        ).pack(pady=20)
+            bg="#E0F7FA",
+            fg="#00796B"
+        )
+        self.category_label.pack(pady=20)
 
         tk.Button(
             self.category_frame,
-            text="Physics",
+            text="Physics (Things that Move!)",
             font=("Comic Sans MS", 14),
+            bg="#FFEB3B",
             command=lambda: self.select_category("Physics")
-        ).pack(pady=10)
+        ).pack(pady=10, fill="x", padx=50)
 
         tk.Button(
             self.category_frame,
-            text="Chemistry",
+            text="Chemistry (Mixing and Changing!)",
             font=("Comic Sans MS", 14),
+            bg="#FF9800",
+            fg="white",
             command=lambda: self.select_category("Chemistry")
-        ).pack(pady=10)
+        ).pack(pady=10, fill="x", padx=50)
 
         tk.Button(
             self.category_frame,
-            text="Biology",
+            text="Biology (Living Things!)",
             font=("Comic Sans MS", 14),
+            bg="#4CAF50",
+            fg="white",
             command=lambda: self.select_category("Biology")
-        ).pack(pady=10)
+        ).pack(pady=10, fill="x", padx=50)
 
         self.category_frame.pack()
 
-        # --------------------------
-        # Question Screen
-        # --------------------------
+        # Question frame
         self.question_frame = tk.Frame(root, bg="#E0F7FA")
-
         self.question_label = tk.Label(
             self.question_frame,
             font=("Comic Sans MS", 16),
@@ -157,12 +151,10 @@ class ScienceQuizApp:
         self.question_label.pack(pady=20)
 
         self.option_buttons = []
-        for i in range(4):
+        for _ in range(4):
             rb = tk.Radiobutton(
                 self.question_frame,
-                text="",
                 variable=self.selected_option,
-                value="",
                 font=("Comic Sans MS", 14),
                 bg="#E0F7FA"
             )
@@ -171,72 +163,57 @@ class ScienceQuizApp:
 
         tk.Button(
             self.question_frame,
-            text="Submit Answer",
+            text="Submit My Answer!",
             font=("Comic Sans MS", 14),
+            bg="#2196F3",
+            fg="white",
             command=self.check_answer
         ).pack(pady=20)
 
-    # ==============================
-    # 3. When a category is chosen
-    # ==============================
     def select_category(self, category):
-        self.questions = quiz_data[category]
+        self.category = category
+        self.questions = quiz_data[category].copy()
         random.shuffle(self.questions)
         self.current_question_index = 0
         self.score = 0
-
         self.category_frame.pack_forget()
         self.question_frame.pack()
+        self.display_question()
 
-        self.load_question()
+    def display_question(self):
+        if self.current_question_index < len(self.questions):
+            q = self.questions[self.current_question_index]
+            self.question_label.config(text=q["question"])
+            for i, option in enumerate(q["options"]):
+                self.option_buttons[i].config(text=option, value=option)
+            self.selected_option.set("")
+        else:
+            self.show_score()
 
-    # ==============================
-    # 4. Load a question
-    # ==============================
-    def load_question(self):
-        self.selected_option.set("")
-
-        question_data = self.questions[self.current_question_index]
-        self.question_label.config(text=question_data["question"])
-
-        for i, option in enumerate(question_data["options"]):
-            self.option_buttons[i].config(
-                text=option,
-                value=option
-            )
-
-    # ==============================
-    # 5. Check the answer
-    # ==============================
     def check_answer(self):
         selected = self.selected_option.get()
         correct = self.questions[self.current_question_index]["answer"]
 
-        if selected == "":
-            messagebox.showwarning("Oops!", "Please choose an answer!")
-            return
-
         if selected == correct:
-            self.score += 1
-            messagebox.showinfo("Correct!", "Good job! 🎉")
+            self.score += 1  # ✅ FIX 2
+            messagebox.showinfo("Yay!", "Correct! You're a science star!")
         else:
-            messagebox.showinfo("Oops!", f"The correct answer is: {correct}")
+            messagebox.showinfo("Oops!", f"The correct answer is {correct}")
 
         self.current_question_index += 1
+        self.display_question()
 
-        if self.current_question_index < len(self.questions):
-            self.load_question()
-        else:
-            messagebox.showinfo(
-                "Quiz Finished!",
-                f"You scored {self.score} out of {len(self.questions)}"
-            )
-            self.question_frame.pack_forget()
-            self.category_frame.pack()
+    def show_score(self):
+        messagebox.showinfo(
+            "Quiz Done!",
+            f"You scored {self.score} out of 5 in {self.category}!"
+        )
+        self.question_frame.pack_forget()
+        self.category_frame.pack()
 
-# ==============================
-# 6. Start the Program
-# ==============================
-root = tk.Tk()
-app = ScienceQuizApp(root)
-root.mainloop()
+
+# ✅ FIX 3
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = ScienceQuizApp(root)
+    root.mainloop()
